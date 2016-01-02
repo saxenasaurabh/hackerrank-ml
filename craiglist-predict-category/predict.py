@@ -2,24 +2,8 @@ import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem.porter import PorterStemmer
 import nltk
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB,GaussianNB
 import sys
-
-# Bucket categories
-sectionToCategories = {}
-with open('training.json') as f:
-    categoryToSection = {}
-    count = 0
-    for line in f:
-        if count != 0:
-            parsedLine = json.loads(line)
-            categoryToSection[parsedLine['category']] = parsedLine['section']
-            if len(categoryToSection) == 16:
-                break
-        count += 1
-    for k, v in categoryToSection.iteritems():
-        sectionToCategories[v] = sectionToCategories.get(v, [])
-        sectionToCategories[v].append(k)
 
 headers = {}
 stemmer = PorterStemmer()
@@ -32,15 +16,22 @@ def stem_tokens(tokens, stemmer):
 
 def tokenize(text):
     tokens = nltk.word_tokenize(text)
-    stems = stem_tokens(tokens, stemmer)
-    return stems
+    #Stemming slows down the pipeline
+    #stems = stem_tokens(tokens, stemmer)
+    #return stems
+    return tokens
+
+def getClassifier():
+    return MultinomialNB()
 
 y_train = {}
 
 # Build TfIdf for each section
 with open('training.json') as f:
     count = 0
-    for line in f:
+    # Read all at once to avoid context switches
+    lines = f.readlines()
+    for line in lines:
         # Skip over 1 line
         if count != 0:
             parsedLine = json.loads(line)
@@ -65,7 +56,7 @@ for section in headers:
 
 clf = {}
 for section in x_train:
-    clf[section] = MultinomialNB().fit(x_train[section], y_train[section])
+    clf[section] = getClassifier().fit(x_train[section], y_train[section])
 
 total = int(sys.stdin.readline())
 results = []
@@ -74,9 +65,10 @@ x_test = {}
 predictions = {}
 
 sectionOrder = []
-while total > 0:
-    total -= 1
-    line = sys.stdin.readline()
+# Read all at once to avoid context switches
+lines = sys.stdin.readlines()
+
+for line in lines:
     parsedLine = json.loads(line)
     section = parsedLine['section']
     heading = parsedLine['heading']
