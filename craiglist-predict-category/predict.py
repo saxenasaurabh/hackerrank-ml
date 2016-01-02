@@ -1,8 +1,13 @@
+# Author: Saurabh Saxena
+# A tfidf, Multinomial naive bayes solution for the HackerRank
+# problem
+# https://www.hackerrank.com/challenges/craigslist-post-classifier-the-category
+
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem.porter import PorterStemmer
 import nltk
-from sklearn.naive_bayes import MultinomialNB,GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 import sys
 
 headers = {}
